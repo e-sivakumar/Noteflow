@@ -1,42 +1,47 @@
-
-
-// 📁 src/routes/AppRoutes.tsx
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter ,Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Landing from '../pages/Landing';
-// import Login from '../pages/Login';
-// import Signup from '../pages/Signup';
-// import Dashboard from '../pages/Home/Dashboard';
-// import Notes from '../pages/Home/Notes';
-// import Profile from '../pages/Home/Profile';
-// import AppLayout from '../layouts/AppLayout';
-// import { useAuth } from '../context/AuthContext'
+import Login from '../pages/LoginPage';
+import Signup from '../pages/SignupPage';
+import Header from '../components/Header';
+import { useAuth } from '../context/AuthContext';
+import DashboardLayout from '../layouts/DashboardLayout';
+import NotesLayout from '../layouts/NotesLayout';
+import AllNotesList from '../pages/AllNotesList';
+import NotesInFolder from '../pages/NotesInFolder';
+import FolderList from '../pages/FolderList';
 
-// const ProtectedRoute = ({ children } : { children: React.ReactNode }) => {
-//   const { isAuthenticated } = useAuth();
-//   return isAuthenticated ? children : <Navigate to="/login" />;
-// };
+const ProtectedRoute = () => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+};
 
 export default function AppRoutes() {
   return (
+    <BrowserRouter>
+    <Header/>
+
     <Routes>
       <Route path="/" element={<Landing />} />
-      {/* <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} /> */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
 
-      {/* <Route
-        path="/home"
+      <Route
         element={
-          <ProtectedRoute>
-            <AppLayout />
-          </ProtectedRoute>
+          <ProtectedRoute/>
         }
       >
-        <Route index element={<Dashboard />} />
-        <Route path="folder/:id" element={<Notes />} />
-        <Route path="profile" element={<Profile />} />
-      </Route> */}
+        <Route element={<DashboardLayout/>}>
+          <Route path='/dashboard' element={<FolderList/>} />
+          <Route path='/dashboard/all' element={<AllNotesList/>} />
+        </Route>
+
+        <Route element={<NotesLayout/>}>
+          <Route path='/folder/:folderId' element={<NotesInFolder/>}/>
+        </Route>
+      </Route>
 
       <Route path="*" element={<div>404 Not Found</div>} />
     </Routes>
+    </BrowserRouter>
   );
 }

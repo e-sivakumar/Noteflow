@@ -1,6 +1,6 @@
 
 // 📁 src/context/ThemeContext.tsx
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useLayoutEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -17,7 +17,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     return storedTheme === 'dark' ? 'dark' : 'light';
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(theme);
 

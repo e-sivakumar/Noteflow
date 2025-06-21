@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import ThemeToggle from '../components/ThemeToggle';
+import { useNavigate } from 'react-router-dom';
+import Particles from '../components/AnimateParticles';
 
 const features = [
     {
@@ -104,37 +107,38 @@ const TypingText = () => {
   );
 };
 
-// Particle background
-const Particles = () => {
-  const particles = Array.from({ length: 50 }, (_, i) => i);
+// // Particle background
+// const Particles = () => {
+//   const particles = Array.from({ length: 50 }, (_, i) => i);
   
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      {particles.map((i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 bg-blue-400/30 rounded-full"
-          initial={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
-          }}
-          animate={{
-            y: [null, -100, window.innerHeight + 100],
-            opacity: [0, 1, 0],
-          }}
-          transition={{
-            duration: Math.random() * 3 + 2,
-            repeat: Infinity,
-            delay: Math.random() * 2,
-          }}
-        />
-      ))}
-    </div>
-  );
-};
+//   return (
+//     <div className="absolute inset-0 overflow-hidden">
+//       {particles.map((i) => (
+//         <motion.div
+//           key={i}
+//           className="absolute w-1 h-1 bg-blue-400/30 rounded-full"
+//           initial={{
+//             x: Math.random() * window.innerWidth,
+//             y: Math.random() * window.innerHeight,
+//           }}
+//           animate={{
+//             y: [null, -100, window.innerHeight + 100],
+//             opacity: [0, 1, 0],
+//           }}
+//           transition={{
+//             duration: Math.random() * 3 + 2,
+//             repeat: Infinity,
+//             delay: Math.random() * 2,
+//           }}
+//         />
+//       ))}
+//     </div>
+//   );
+// };
 
 export default function Landing() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -144,21 +148,6 @@ export default function Landing() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-    const [isDark, setIsDark] = useState(() => {
-      return localStorage.getItem('theme') === 'dark';
-    });
-
-    useEffect(() => {
-        const root = window.document.documentElement;
-        if (isDark) {
-          root.classList.add('dark');
-          localStorage.setItem('theme', 'dark');
-        } else {
-          root.classList.remove('dark');
-          localStorage.setItem('theme', 'light');
-        }
-      }, [isDark]);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden relative">
       {/* Animated Background */}
@@ -166,7 +155,7 @@ export default function Landing() {
         <Particles />
         
         {/* Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,0.03)_1px,transparent_1px)] bg-[size:100px_100px]" />
+        {/* <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,0.03)_1px,transparent_1px)] bg-[size:100px_100px]" /> */}
         
         {/* Gradient Orbs */}
         <motion.div
@@ -230,14 +219,9 @@ export default function Landing() {
           transition={{ delay: 0.2 }}
         >
           <a href="#features" className="hover:text-blue-400 transition-colors">Features</a>
-          <a href="#pricing" className="hover:text-blue-400 transition-colors">Pricing</a>
-          <a href="#about" className="hover:text-blue-400 transition-colors">About</a>
-          <button
-            onClick={() => setIsDark(!isDark)}
-            className="ml-4 px-3 py-1 rounded border border-white/20 text-sm hover:bg-white/10 transition"
-            >
-            {isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}
-            </button>
+          <a href="/login" className="hover:text-blue-400 transition-colors">Login</a>
+          <a href="/signup" className="hover:text-blue-400 transition-colors">Sign Up</a>
+          <ThemeToggle/>
         </motion.nav>
       </motion.header>
 
@@ -309,6 +293,7 @@ export default function Landing() {
             whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
             whileTap={{ scale: 0.95 }}
             className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300"
+            onClick={()=>{navigate("/login")}}
           >
             Start Writing Now
           </motion.button>

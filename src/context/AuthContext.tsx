@@ -11,11 +11,14 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(()=>{
+      return Boolean(localStorage.getItem('token'));
+    });
     // const navigate = useNavigate();
 
     useEffect(() => {
         const token = localStorage.getItem('token');
+        console.log("sjs", token)
         if (token) {
           setIsAuthenticated(true);
         }
