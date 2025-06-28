@@ -1,5 +1,6 @@
 // src/components/TextField.tsx
-import React from 'react';
+import React, { useState } from 'react';
+import { FiEye, FiEyeOff } from 'react-icons/fi'
 
 // Define props for the TextField component
 interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -8,32 +9,37 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string; // Optional error message to display below the input
 }
 
-const TextField: React.FC<TextFieldProps> = ({ label, id, error, className, ...props }) => {
+const TextField: React.FC<TextFieldProps> = ({ label, id, error, type, className, ...props }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === 'password';
   return (
     <div className="mb-4"> {/* Margin bottom for spacing between fields */}
       <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
         {label}
       </label>
+      <div className="relative">
       <input
-        type={props.type || "text"} // Default type to "text" if not specified
+        type={isPassword ? (showPassword ? 'text' : 'password') : type || 'text'}
         id={id}
-        // Tailwind classes for styling:
-        // - block w-full: Takes full width
-        // - px-3 py-2: Padding inside input
-        // - border: Default border
-        // - rounded-md shadow-sm: Rounded corners and subtle shadow
-        // - focus:outline-none focus:ring-blue-500 focus:border-blue-500: Focus styles
-        // - dark: classes for dark mode
-        // - conditional border-red-500 if there's an error
         className={`mt-1 block w-full px-3 py-2 border ${
           error ? 'border-red-500' : 'border-gray-300'
         } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm
         bg-slate-200 text-black
         dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400
-        ${className || ''}`} // Allow additional classes to be passed in
-        {...props} // Pass through all other standard input props (value, onChange, placeholder, required etc.)
+        ${className || ''}`} 
+        {...props}
         />
-      {/* Display error message if provided */}
+         {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute p-[8px] border-none bg-transparent inset-y-0 right-2 flex items-center text-gray-600 dark:text-gray-300"
+            tabIndex={-1}
+          >
+            {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+          </button>
+        )}
+        </div>
       {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );

@@ -1,188 +1,3 @@
-// // src/components/SearchDropdown.tsx
-// import { useState, useRef, useEffect, useMemo } from 'react';
-// import { FiSearch } from 'react-icons/fi';
-// import { useDebouncedValue } from '../hooks/useDebounce';
-
-// export type SearchOption = { label: string; value: string };
-
-// interface Props {
-//   options: SearchOption[];
-//   placeholder?: string;
-//   onSelect: (opt: SearchOption) => void;
-// }
-
-// export default function SearchDropdown({
-//   options,
-//   placeholder = 'Search...',
-//   onSelect,
-// }: Props) {
-//   const [open, setOpen] = useState(false);
-//   const [query, setQuery] = useState('');
-//   const ref = useRef<HTMLDivElement>(null);
-
-//   // 1) Debounce the user's input
-//   const debouncedQuery = useDebouncedValue(query, 500);
-
-//   // 2) Only search when debouncedQuery has ≥2 chars
-//   const filtered = useMemo(() => {
-//     if (debouncedQuery.length < 2) return [];
-//     return options.filter(o =>
-//       o.label.toLowerCase().includes(debouncedQuery.toLowerCase())
-//     );
-//   }, [debouncedQuery, options]);
-
-//   // 3) Close on outside click
-//   useEffect(() => {
-//     const onClick = (e: MouseEvent) => {
-//       if (open && ref.current && !ref.current.contains(e.target as Node)) {
-//         setOpen(false);
-//       }
-//     };
-//     document.addEventListener('mousedown', onClick);
-//     return () => document.removeEventListener('mousedown', onClick);
-//   }, [open]);
-
-//   // 4) Simple lazy‐load: show more as you scroll
-//   const pageSize = 20;
-//   const [visibleCount, setVisibleCount] = useState(pageSize);
-//   const visible = filtered.slice(0, visibleCount);
-//   const listRef = useRef<HTMLDivElement>(null);
-//   const inputRef = useRef<HTMLInputElement>(null);
-//   useEffect(() => {
-//     setVisibleCount(pageSize);
-//   }, [filtered]);
-//   useEffect(() => {
-//     const el = listRef.current;
-//     if (!el) return;
-//     const onScroll = () => {
-//       if (el.scrollTop + el.clientHeight >= el.scrollHeight) {
-//         setVisibleCount(c => Math.min(filtered.length, c + pageSize));
-//       }
-//     };
-//     el.addEventListener('scroll', onScroll);
-//     return () => el.removeEventListener('scroll', onScroll);
-//   }, [filtered]);
-
-//   useEffect(() => {
-//     if (open && inputRef.current) {
-//       inputRef.current.focus()
-//     }
-//   }, [open]);
-
-//   return (
-//     <div className="relative inline-block" ref={ref}>
-//       {/* Toggle Button */}
-//       {/* <button
-//         onClick={() => {
-//           setOpen(o => !o);
-//           if (!open) setQuery('');
-//         }}
-//         className='relative z-50 p-0 rounded-full'
-//       >
-//         <div className="flex items-center w-64 px-3 py-2 bg-white dark:bg-gray-700
-//                       border border-gray-300 dark:border-gray-600 rounded-full shadow-sm
-//                       hover:border-blue-400 focus-within:border-blue-500 transition-colors">
-//         <FiSearch className="text-gray-600 dark:text-gray-300 mr-2" />
-//         <input
-//          ref={inputRef}
-//           type="text"
-//           className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100"
-//           placeholder={placeholder}
-//           value={query}
-//           onChange={e => setQuery(e.target.value)}
-//           onFocus={() => setOpen(true)}
-//         />
-//       </div>
-//       </button> */}
-//        <div
-//         className="relative rounded-full z-50 flex items-center"
-//       >
-//         <FiSearch className="absolute left-4  text-gray-600 dark:text-gray-300 mr-2" />
-//         <input
-//           ref={inputRef}
-//           type="text"
-//           className="flex-1 bg-transparent outline-none text-gray-800 dark:text-gray-100 
-//                     w-full px-3 py-2 bg-white dark:bg-gray-700
-//                    border border-gray-300 dark:border-gray-600 rounded-full shadow-sm
-//                    hover:border-blue-400 transition-colors"
-//           placeholder={placeholder}
-//           value={query}
-//           onChange={e => setQuery(e.target.value)}
-//           onFocus={() => setOpen(true)}
-//           onBlur={() => setOpen(false)}
-//         />
-//       </div>
-
-//       {open && (
-//         <>
-//           {/* Backdrop */}
-//           {/* <div className="fixed inset-0 bg-black bg-opacity-20 z-40" /> */}
-//           <div
-//             className="fixed inset-0 bg-black bg-opacity-50 z-30"
-//             onClick={() => setOpen(false)}
-//           />
-
-//           {/* Dropdown Panel */}
-//           <div className="absolute left-0 mt-2 w-64 bg-white dark:bg-gray-800
-//                           border border-gray-300 dark:border-gray-600
-//                           rounded-md shadow-lg z-50">
-//             {/* <input
-//               type="text"
-//               value={query}
-//               onChange={e => setQuery(e.target.value)}
-//               autoFocus
-//               className="w-full px-3 py-2 border-b border-gray-200 dark:border-gray-600
-//                          bg-transparent focus:outline-none"
-//               placeholder={placeholder}
-//             /> */}
-
-            
-//             <div
-//               ref={listRef}
-//               className="max-h-48 overflow-auto transition-all duration-200"
-//             >
-//               {/* {debouncedQuery.length < 2 && (
-//                 <div className="p-2 text-center text-gray-500">
-//                   Enter at least 2 characters
-//                 </div>
-//               )} */}
-//               {debouncedQuery.length >= 2 && filtered.length > 0 && (
-//                  <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-//                    {filtered.length} suggestion{filtered.length > 1 ? 's' : ''}
-//                  </div>
-//                )}
-
-//               {visible.map(opt => (
-//                 <button
-//                   key={opt.value}
-//                   type="button"
-//                   onClick={() => {
-//                     onSelect(opt);
-//                     setOpen(false);
-//                   }}
-//                   className="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200
-//                              hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-//                 >
-//                   {opt.label}
-//                 </button>
-//               ))}
-
-//               {debouncedQuery.length >= 2 && visible.length < filtered.length && (
-//                 <div className="p-2 text-center text-gray-500">Loading…</div>
-//               )}
-
-//               {debouncedQuery.length >= 2 && filtered.length === 0 && (
-//                 <div className="p-2 text-center text-gray-500">No results</div>
-//               )}
-//             </div>
-//           </div>
-//         </>
-//       )}
-//     </div>
-//   );
-// }
-
-
 // src/components/SearchDropdown.tsx
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { FiSearch } from 'react-icons/fi';
@@ -194,12 +9,14 @@ interface Props {
   options: SearchOption[];
   placeholder?: string;
   onSelect: (opt: SearchOption) => void;
+  onSearch: (p: string)=> void
 }
 
 export default function SearchDropdown({
   options,
   placeholder = 'Search...',
   onSelect,
+  onSearch
 }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -213,9 +30,8 @@ export default function SearchDropdown({
   // Filter options based on debounced query
   const filtered = useMemo(() => {
     if (debouncedQuery.length < 2) return [];
-    return options.filter(o =>
-      o.label.toLowerCase().includes(debouncedQuery.toLowerCase())
-    );
+    onSearch(debouncedQuery.toLowerCase())
+    return options
   }, [debouncedQuery, options]);
 
   // Pagination for large lists

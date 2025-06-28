@@ -6,6 +6,18 @@
   @apply w-full border rounded px-3 py-2 bg-slate-200 dark:bg-slate-700 text-black dark:text-gray-200;
 }
 
+.cancel-btn {
+  @apply bg-slate-100 dark:bg-slate-800 text-gray-800 dark:text-gray-100
+}
+
+.submit-btn {
+  @apply bg-blue-400 hover:bg-blue-600 text-gray-800 dark:text-gray-100
+}
+
+.btn-danger {
+  @apply bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -56,10 +68,7 @@ button {
 button:hover {
   border-color: #646cff;
 }
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+
 
 @media (prefers-color-scheme: light) {
   :root {
@@ -72,4 +81,17 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.5); /* adjust as needed */
+  border-radius: 4px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }

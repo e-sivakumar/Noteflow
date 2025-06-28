@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { FiChevronDown, FiChevronUp, FiFilter } from 'react-icons/fi'
+import { MdTune } from 'react-icons/md';
 
 export interface FilterOption {
   label: string
@@ -13,7 +14,7 @@ interface Props {
 }
 
 export default function FilterBar({ options, selected, onSelect }: Props) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
 
   return (
     <div className="w-full">
@@ -26,7 +27,7 @@ export default function FilterBar({ options, selected, onSelect }: Props) {
                    border border-gray-300 dark:border-gray-600 rounded-lg shadow-md
                    hover:bg-gray-200 dark:hover:bg-gray-500 transition"
       >
-        <FiFilter size={16}/>
+        <MdTune size={16}/>
         <span className='text-[0.7rem] sm:text-[0.8rem]'>Filter</span>
         {open ?
         <span>

@@ -1,50 +1,43 @@
 // src/pages/LoginPage.tsx
 import React, { useState } from 'react';
 import TextField from '../components/InputField'; // Reusable input component
-import { login } from '../services/authService'; // API service
 import { isRequired } from '../utils/Validation'; // Validation utilities
 import { useNavigate } from 'react-router-dom'; // For redirection after login
+import { useSignIn } from '../hooks/useSignIn';
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState<string | null>(null); // For general form errors
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate(); // Hook to navigate programmatically
+  const signIn = useSignIn();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent default form submission and page reload
     setFormError(null); // Clear previous errors
-    setLoading(true);   // Set loading state
 
     // Client-side validation: Check if fields are required
     if (!isRequired(username)) {
       setFormError('Username is required.');
-      setLoading(false);
       return;
     }
     if (!isRequired(password)) {
       setFormError('Password is required.');
-      setLoading(false);
       return;
     }
 
     try {
-      // Call the login API service
-      const data = await login({ username, password });
-      console.log('Login successful:', data);
-      // TODO: Handle successful login:
-      // - Store the received token (e.g., in localStorage, secure httpOnly cookie)
-      // - Store user data in a global state (e.g., using AuthContext)
-      // - Redirect the user to a dashboard or notes page
-      navigate('/notes'); // Redirect to your main notes page
+
+      await signIn.mutateAsync({usernameoremail: username, password})
+      // alert("loged in")
+      console.log('Login successful:');
+      navigate('/dashboard'); // Redirect to your main notes page
     } catch (err: any) {
       // Handle API errors
-      setFormError(err.message || 'Login failed. Please try again.');
-      console.error('Login error:', err);
-    } finally {
-      setLoading(false); // Reset loading state
-    }
+      setFormError(err?.response?.data?.message || 'Login failed. Please try again.');
+      alert(`error ${err?.message}`)
+      console.error('Login error:', err?.response?.data?.message );
+    } 
   };
 
   return (
@@ -82,9 +75,9 @@ const LoginPage: React.FC = () => {
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none 
             dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors duration-200"
-            disabled={loading} // Disable button while loading
+            disabled={signIn.isPending} // Disable button while loading
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {signIn.isPending ? 'Logging in...' : 'Login'}
           </button>
           </div>
 

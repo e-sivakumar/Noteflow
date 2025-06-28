@@ -1,43 +1,171 @@
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { FiFilePlus, FiFileText } from 'react-icons/fi'
 import CardDesign from '../components/CardDesign'
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import RichTextEditor from '../components/RichTextEditor';
+import CustomDropdown, {type DropdownOption} from '../components/CustomDropDown';
+import type { FilterOption } from '../components/FilterBar';
+import { useArchiveNote, useCreateNote, useDeleteNote, useGetNote, useNotes, usePinNote, useSearchNotes, useUnarchiveNote, useUnPinNote, useUpdateNote } from '../hooks/useNotes';
+import { getNotes, type Note } from '../api/notes';
+import SearchDropdown from '../components/SearchBox';
+import FilterBar from '../components/FilterBar';
+import { useQueryClient } from '@tanstack/react-query';
 
-const dummyNotes = [
-  { id: 'a1', folderId: '1', title: 'Alpha Plan',   snippet: 'Outline the phases...', createdAt: '2025-04-11' },
-  { id: 'a2', folderId: '1', title: 'Alpha Budget', snippet: 'Cost analysis...',       createdAt: '2025-04-12' },
-  { id: 'b1', folderId: '2', title: 'Groceries',    snippet: 'Buy fruits and veggies',createdAt: '2025-04-13' },
-]
+// const dummyNotes = [
+//   { id: 'a1', folderId: '1', title: 'Alpha Plan',   snippet: 'Outline the phases...', createdAt: '2025-04-11' },
+//   { id: 'a2', folderId: '1', title: 'Alpha Budget', snippet: 'Cost analysis...',       createdAt: '2025-04-12' },
+//   { id: 'b1', folderId: '2', title: 'Groceries',    snippet: 'Buy fruits and veggies',createdAt: '2025-04-13' },
+// ]
 
 export default function NotesInFolder() {
-  const { folderId } = useParams<{ folderId: string }>()
-  const notes = dummyNotes.filter(n => n.folderId === folderId)
+  const navigate = useNavigate();
+  const { folderId } = useParams<{ folderId: string }>() || '';
+  const queryClient = useQueryClient();
+
+   const sortOptions: DropdownOption[] = [
+      { label: 'Name (A–Z)',    value: 'atoz'  },
+      { label: 'Name (Z–A)',    value: 'ztoa' },
+      { label: 'Date (Newest)', value: 'newtoold' }, // default
+      { label: 'Date (Oldest)', value: 'oldtonew'  },
+    ]
+    const [sort, setSort] = useState<DropdownOption>(sortOptions[2])
+  const filterOptions: FilterOption[] = [
+      { label: 'All', value: '' },
+      {label: 'Archived', value: 'archived'},
+      {label: 'Unarchived', value: 'active'}
+    ]
+    const [filter, setFilter] = useState<FilterOption>(filterOptions[0])
+    
+    
+      const [query, setQuery] = useState('');
+      // 3) Search state & suggestions
+      const { data: searchResults = [] } = useSearchNotes(folderId as string, query)
+      
+  const limit = 4
+
+  const {
+      data,
+      isLoading,
+      isError,
+      isFetching,
+      isFetchingNextPage,
+      fetchNextPage,
+      hasNextPage,
+    } = useNotes(folderId as string,filter.value, sort.value, limit)
+  
+  // const notes = dummyNotes.filter(n => n.folderId === folderId)
+  const notes = data?.pages.flatMap(p => p.notes) ?? []
+
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+      if (!loadMoreRef.current || !hasNextPage) return
+      const obs = new IntersectionObserver(
+        ([entry]) => entry.isIntersecting && fetchNextPage(),
+        { rootMargin: '200px' }
+        // it has 200px
+      )
+      obs.observe(loadMoreRef.current)
+      return () => obs.disconnect()
+    }, [fetchNextPage, hasNextPage])
+
+
+  const createNote = useCreateNote();
+  const updateNote = useUpdateNote();
+  const archiveNote = useArchiveNote();
+  const unarchiveNote = useUnarchiveNote();
+  const pinNote = usePinNote();
+  const unPinNote = useUnPinNote();
+  const deleteNote = useDeleteNote();
+  // const getNote = useGetNote();
+
 
   const { isOpen, open, close } = useModal()
-  const [name, setName] = useState('')
-  const [category, setCategory] = useState('');
-  const [blockButton, setBlockButton] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{
+    id?: string
+    name: string
+    content: string
+  }>({ name: '', content: '<p></p>' })
+  const [errorName, setErrorName] = useState(false);
 
-  
-  const newPromise = async()=>{
-    return new Promise((resolve)=>{
-      setTimeout(()=>{resolve("done")}, 3000)
-    })
-  }
-
-  const save = async() => {
-    console.log('save folder:', name)
-    await newPromise().then(()=>{alert("saved success")}).catch((err)=>{alert(`eroro ${err}`)})
-    close()
-  }
+    const openEdit = async(note: Note) => {
+      console.log("het")
+      setErrorName(false)
+      // setEditing({ id: f.noteId, name: f.name, content: f.content || '<p></p>' })
+      // const {data} = await useGetNote(note.noteId)
+      const data = await queryClient.fetchQuery({
+    queryKey: ['getNotes', note.noteId],
+    queryFn: () => getNotes(note.noteId),
+  })
+      if(data){
+        setEditing({
+          id: data.noteId,
+          name: data.name,
+          content: data.content || '<p></p>',
+        })
+        open()
+      }
+    }
+    const validateFolderForm = ()=>{
+      if(!editing.name || !editing.content) return false
+      return true
+    }
+    const handleSave = () => {
+      if (editing.id) {
+        if(!validateFolderForm()) {
+          setErrorName(true); 
+          return
+        }
+        updateNote.mutate({ id: editing.id, data: { name: editing.name, content: editing.content } })
+      } else {
+        if(!validateFolderForm()) {
+          setErrorName(true); 
+          return
+        }
+        setErrorName(false)
+        createNote.mutate({folderId: folderId as string , data: { name: editing.name, content: editing.content}})
+      }
+      setEditing({
+        name: '',
+        content:'<p></p>',
+      })
+      close()
+    }
+    const handlePinNote = async(id: string)=>{
+      await pinNote.mutateAsync({id})
+    }
+    const handleUnPinNote = async(id: string)=>{
+      await unPinNote.mutateAsync({id})
+    }
+    const handleArchiveNote = async(id: string)=>{
+      await archiveNote.mutateAsync({id})
+    }
+    const handleUnarchiveNote = async(id: string)=>{
+      await unarchiveNote.mutateAsync({id})
+    }
+    // const handleDelete = (id: string) => {
+    //   deleteNote.mutate(id)
+    // }
+    const handleDelete = (id: string) => {
+      setConfirmDeleteId(id); // show confirmation modal
+    };
+    const [blockButton, setBlockButton] = useState(false);
+    
 
   return (
     <div>
       {/* <h2 className="text-2xl text-black dark:text-gray-100 font-semibold mb-4">Notes in Folder {folderId}</h2> */}
       <div className='flex flex-row justify-between items-center  mb-4 '>
-                    <h2 className="text-2xl text-black dark:text-gray-100 font-semibold p-[0.5rem]">Notes in Folder {folderId}</h2>
+                    <h2 className="text-xl sm:text-2xl text-black dark:text-gray-100 font-semibold p-[0.5rem]">{folderId}</h2>
+                     <div className="flex flex-wrap-reverse justify-items-end items-center gap-4">
+                              <CustomDropdown
+                                label="Sort"
+                                options={sortOptions}
+                                selected={sort}
+                                onSelect={setSort}
+                              />
                     <div 
                       className='cursor-pointer text-gray-700 dark:text-gray-200 bg-slate-300 dark:bg-gray-700 p-[0.5rem] transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg rounded-lg hover:bg-blue-500 dark:hover:bg-blue-600'
                       onClick={()=>open()}
@@ -45,86 +173,194 @@ export default function NotesInFolder() {
                         <FiFilePlus size={26}/>
                     </div>
                     </div>
+                    </div>
 
-       <Modal isOpen={isOpen} onClose={close} title="Create Folder">
+       <Modal isOpen={isOpen} 
+       onClose={()=>{
+        setEditing({
+          name: '',
+          content: '<p></p>',
+        })
+        close()
+      }} 
+       title={editing.id ? 'Edit Note' : 'Create Note'}>
                 <div className="space-y-4">
                   <input
                     type="text"
-                    className='input-base'
-                    placeholder="Folder name"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
+                    className={`input-base ${errorName ? 'border-red-600' : ''}`}
+                    placeholder="Note name"
+                    value={editing.name}
+                    onChange={(e) => setEditing(ps => ({ ...ps, name: e.target.value }))}
                   />
                   {/* Add category list options in input focused */}
-                  <input 
+                  {/* <input 
                     type="text"
                     className='input-base'
-                    placeholder="Category name"
-                    value={category}
-                    onChange={e => setCategory(e.target.value)}
+                    placeholder="Enter your contents here...."
+                    value={editing.content}
+                    onChange={e => setEditing(ps => ({ ...ps, category: e.target.value }))}
+                  /> */}
+                  <RichTextEditor
+                    content={editing.content}
+                    onUpdate={e => setEditing(ps => ({ ...ps, content: e }))}
+                    className="border rounded"
                   />
                   <div className="flex justify-end gap-2">
                     <button 
-                      disabled={blockButton}
-                      onClick={close} 
-                      className={`btn-secondary bg-slate-100 dark:bg-slate-800 text-gray-800 dark:text-gray-100 ${blockButton ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      // disabled={blockButton}
+                disabled={createNote.isPending || updateNote.isPending}
+
+                      onClick={()=>{
+                        setEditing({
+                          name: '',
+                          content: '<p></p>',
+                        })
+                        close()
+                      }} 
+                      className={`btn-secondary cancel-btn ${blockButton ? 'opacity-50 cursor-not-allowed' : ''}`}>
                         Cancel
                     </button>
                     <button 
-                    onClick={
-                      async()=>{
-                        setBlockButton(true)
-                        await save()
-                        setBlockButton(false)
-                        close()
-                      }
-                    }   
-                    disabled={blockButton}
-                    className= {`btn-primary bg-blue-400 hover:bg-blue-600 text-gray-800 dark:text-gray-100 ${blockButton ? 'opacity-50 cursor-not-allowed' : ''}`} >
-                      {blockButton ? 'Saving...' : 'Save'}
+                    // onClick={
+                    //   async()=>{
+                    //     setBlockButton(true)
+                    //     await save()
+                    //     setBlockButton(false)
+                    //     close()
+                    //   }
+                    // }   
+                    onClick={handleSave}
+                    disabled={createNote.isPending || createNote.isPending}
+                    className= {`btn-primary submit-btn ${blockButton ? 'opacity-50 cursor-not-allowed' : ''}`} >
+                      {(createNote.isPending || updateNote.isPending)
+                ? 'Saving…'
+                : 'Save'}
                       </button>
                   </div>
                 </div>
               </Modal>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {notes.map(note => (
-          // <div
-          //   key={note.id}
-          //   className="relative group p-4 bg-white dark:bg-gray-700 rounded-lg shadow 
-          //              transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg"
-          // >
-          //   <div className="flex items-center mb-2">
-          //     <FiFileText size={24} className="text-green-500 mr-2" />
-          //     <h3 className="text-lg font-medium">{note.title}</h3>
-          //   </div>
-          //   <p className="text-sm text-gray-500 dark:text-gray-300 mb-2">{note.snippet}</p>
-          //   <p className="text-xs text-gray-400 dark:text-gray-500">Created on {note.createdAt}</p>
 
-          //   <div className="absolute top-2 right-2 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          //     <button className="p-1 bg-white dark:bg-gray-600 rounded-full hover:bg-blue-100">
-          //       <FiEdit2 size={16} />
-          //     </button>
-          //     <button className="p-1 bg-white dark:bg-gray-600 rounded-full hover:bg-red-100">
-          //       <FiTrash2 size={16} />
-          //     </button>
-          //   </div>
-          // </div>
-          <CardDesign 
-          key={note.id}
-          id={note.id}
-          title={note.title}
-          createdAt= {note.createdAt}
-          icon={<FiFileText size={24} className="text-green-500 mr-2" />}
-          description={note.snippet}
-          onEdit={() => {console.log("file edited")}}
-          onDelete={() => {console.log("file deleted")}}
-          onClick={()=>{}}
+              <Modal
+                isOpen={!!confirmDeleteId}
+                onClose={() => setConfirmDeleteId(null)}
+                title="Delete Note"
+              >
+                <div className="space-y-4">
+                  <p className="text-gray-800 dark:text-gray-200">
+                    Are you sure you want to delete this note? This action cannot be undone.
+                  </p>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      className="btn-secondary cancel-btn"
+                      onClick={() => setConfirmDeleteId(null)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="btn-danger"
+                      onClick={async () => {
+                        if (confirmDeleteId) {
+                          await deleteNote.mutateAsync(confirmDeleteId);
+                          setConfirmDeleteId(null);
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </Modal>
+              <div className="flex flex-wrap items-center gap-4 mb-6">
+                      {/* 1) Search on left */}
+                      <SearchDropdown
+                        // options={searchOpts}
+                        options={searchResults}
+                        onSearch={(q: string)=>setQuery(q)}
+                        placeholder="Search notes..."
+                        // onSelect={opt => navigate(`/folder/${opt.value}`)}
+                        onSelect={opt => console.log("clicked", opt)}
+                      />
+                      </div>
+
+<div className='my-5'>
+            <FilterBar
+          options={filterOptions}
+          selected={filter}
+          onSelect={setFilter}
           />
-        ))}
-        {notes.length === 0 && (
+        </div>
+
+
+
+      {
+        isLoading 
+        ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-32 bg-gray-300 dark:bg-gray-700 animate-pulse rounded" />
+            ))}
+          </div>
+        ) 
+        : isError 
+        ? (
+          <div className="text-gray-900 dark:text-white">No notes available</div>
+        ) 
+        : (
+          <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {
+          notes.length > 0 ?
+        notes.map(note => (
+          <CardDesign 
+          key={note.noteId}
+          id={note.noteId}
+          title={note.name}
+          updatedAt= {note.updatedAt}
+          icon={<FiFileText size={24} className="text-green-500 mr-2" />}
+          // description={note.snippet}
+          onEdit={() => openEdit(note)}
+          onDelete={() => handleDelete(note.noteId)}
+          onClick={()=>{navigate(`/folder/${folderId}/note/${note.noteId}`)}}
+          isNotes= {true}
+          isPinned={note.isPinned}
+          onPin={
+            note.isPinned ? handleUnPinNote : handlePinNote
+          }
+          isArchived={note.isArchived}
+          onArchive={
+            note.isArchived ? handleUnarchiveNote : handleArchiveNote
+          }
+          />
+        ))
+        :
+        (
+          <div className="col-span-full text-center text-gray-500">
+            No Notes found.
+          </div>
+        )
+      }
+        {/* {notes.length === 0 && (
           <p className="text-gray-500 dark:text-gray-400">No notes in this folder.</p>
-        )}
+        )} */}
       </div>
+      
+      <div ref={loadMoreRef} className="h-1" />
+
+{isFetchingNextPage && (
+  <div className="text-center py-4 text-gray-500">
+    Loading more…
+  </div>
+)}
+
+{(!hasNextPage && notes.length > 0) && (
+  <div className="text-center py-4 text-gray-500">
+    You’ve reached the end.
+  </div>
+)}
+          </>
+        )
+      }
+      
     </div>
   )
 }

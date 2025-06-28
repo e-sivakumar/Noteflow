@@ -9,6 +9,7 @@ import NotesLayout from '../layouts/NotesLayout';
 import AllNotesList from '../pages/AllNotesList';
 import NotesInFolder from '../pages/NotesInFolder';
 import FolderList from '../pages/FolderList';
+import NoteViewPage from '../pages/NoteViewPage';
 
 const ProtectedRoute = () => {
   const { isAuthenticated } = useAuth();
@@ -35,9 +36,10 @@ export default function AppRoutes() {
           <Route path='/dashboard/all' element={<AllNotesList/>} />
         </Route>
 
-        <Route element={<NotesLayout/>}>
-          <Route path='/folder/:folderId' element={<NotesInFolder/>}/>
-        </Route>
+        <Route path="folder/:folderId" element={<NotesLayout/>}>
+            <Route index element={<NotesInFolder/>} />         {/* /folder/123 */}
+            <Route path="note/:noteId" element={<NoteViewPage/>}/>
+          </Route>
       </Route>
 
       <Route path="*" element={<div>404 Not Found</div>} />

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { FiChevronDown, FiChevronUp, FiFilter, FiTrendingDown } from 'react-icons/fi'
+import { MdSort } from 'react-icons/md';
 
 export type DropdownOption = {
   label: string
@@ -40,12 +41,12 @@ export default function CustomDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(o => !o)}
-        className="flex items-center px-1 py-1 focus:outline-none focus:ring-0 md:px-3 md:py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+        className="flex items-center px-2 py-2 focus:outline-none focus:ring-0 sm:px-3 sm:py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
       >
         <span className="text-gray-800 dark:text-gray-200 mr-2">{isFilter ? 
-    <FiFilter size={16}/> : <FiTrendingDown size={14}/>    
+    <MdSort size={16}/> : <MdSort size={16}/>    
     }</span>
-        <span className='text-sm sm:text-xs text-slate-900 dark:text-gray-100'>{label}</span>
+        <span className='hidden sm:block text-sm text-slate-900 dark:text-gray-100'>{label}</span>
 
         {/* <span className="hidden md:visible  text-xs md:font-medium text-gray-700 dark:text-gray-100">{selected.label}</span> */}
         {isOpen ? (

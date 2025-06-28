@@ -1,9 +1,9 @@
 // src/pages/SignupPage.tsx
 import React, { useState } from 'react';
 import TextField from '../components/InputField';
-import { signup } from '../services/authService';
 import { isRequired, isValidEmail, isStrongPassword, doPasswordsMatch, isValidPhoneNumber } from '../utils/Validation';
 import { useNavigate } from 'react-router-dom';
+import { useSignUp } from '../hooks/useSignUp';
 
 const SignupPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -12,12 +12,13 @@ const SignupPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const signup = useSignUp()
 
   // State to manage individual field errors
   const [errors, setErrors] = useState({
     name: '', email: '', phone: '', username: '', password: '', confirmPassword: '', form: ''
   });
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const validateForm = () => {
@@ -45,24 +46,23 @@ const SignupPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({ name: '', email: '', phone: '', username: '', password: '', confirmPassword: '', form: '' }); // Clear errors
-    setLoading(true);
+    // setLoading(true);
 
     if (!validateForm()) {
-      setLoading(false);
+      // setLoading(false);
       return;
     }
 
     try {
-      const data = await signup({ name, email, phone, username, password });
-      console.log('Sign up successful:', data);
-      alert(data.message || 'Sign up successful! Please log in.');
-      navigate('/login'); // Redirect to login page after successful signup
+      // const data = await signup({ name, email, phone, username, password });
+      // console.log('Sign up successful:', data);
+      await signup.mutateAsync({ name, email, phoneNumber: phone, username, password, confirmPassword })
+      alert('Sign up successful! Please log in.');
+      // navigate('/login'); // Redirect to login page after successful signup
     } catch (err: any) {
-      setErrors(prev => ({ ...prev, form: err.message || 'Sign up failed. Please try again.' }));
-      console.error('Sign up error:', err);
-    } finally {
-      setLoading(false);
-    }
+      setErrors(prev => ({ ...prev, form: err?.response?.data?.message || 'Sign up failed. Please try again.' }));
+      console.error('Sign up error:', err?.response?.data?.message);
+    } 
   };
 
   return (
@@ -134,11 +134,12 @@ const SignupPage: React.FC = () => {
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none 
             dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors duration-200"
-            disabled={loading}
+            disabled={signup.isPending}
           >
-            {loading ? 'Signing up...' : 'Sign Up'}
+            {signup.isPending ? 'Signing up...' : 'Sign Up'}
           </button>
           </div>
+          
 
           <p className="mt-4 text-center text-gray-600 dark:text-gray-300">
             Already have an account? <a href="/login" className="text-blue-600 hover:underline dark:text-blue-400">Login</a>

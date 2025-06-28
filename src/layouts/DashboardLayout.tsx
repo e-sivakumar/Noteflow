@@ -11,7 +11,7 @@ export default function DashboardLayout() {
   return (
     <div className="flex h-[calc(100vh-4rem)]">
       <Sidebar items={items} />
-      <main className="flex-1 overflow-y-auto bg-slate-100 dark:bg-gray-900 min-h-[calc(100vh-4rem)] p-6 pt-4">
+      <main className="flex-1 thin-scrollbar overflow-y-auto bg-slate-100 dark:bg-gray-900 min-h-[calc(100vh-4rem)] p-6 pt-4">
         <Outlet />
       </main>
     </div>
