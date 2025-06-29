@@ -26,16 +26,30 @@ export default function SearchDropdown({
 
   // Debounce the user's input
   const debouncedQuery = useDebouncedValue(query, 300);
+  const pageSize = 20;
 
   // Filter options based on debounced query
+  // const filtered = useMemo(() => {
+  //   if (debouncedQuery.length < 2) return [];
+  //   onSearch(debouncedQuery.toLowerCase())
+  //   return options
+  // }, [debouncedQuery, options]);
+
   const filtered = useMemo(() => {
-    if (debouncedQuery.length < 2) return [];
-    onSearch(debouncedQuery.toLowerCase())
-    return options
-  }, [debouncedQuery, options]);
+    return debouncedQuery.length < 2 ? [] : options
+  }, [debouncedQuery, options])
+
+  useEffect(() => {
+    const q = debouncedQuery.trim().toLowerCase()
+    if (q.length >= 2) {
+      onSearch(q)
+      setVisibleCount(pageSize)
+    }
+  }, [debouncedQuery, onSearch])
+
+  // const filtered = debouncedQuery.length < 2 ? [] : options;
 
   // Pagination for large lists
-  const pageSize = 20;
   const [visibleCount, setVisibleCount] = useState(pageSize);
   const visible = filtered.slice(0, visibleCount);
 

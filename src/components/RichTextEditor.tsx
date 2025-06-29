@@ -5,7 +5,7 @@ import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import TextStyle from '@tiptap/extension-text-style'
 import Color from '@tiptap/extension-color'
-import { FiBold, FiItalic, FiUnderline, FiLink, FiList, FiRotateCcw, FiRotateCw } from 'react-icons/fi'
+import { FiBold, FiItalic, FiUnderline, FiLink, FiRotateCcw, FiRotateCw } from 'react-icons/fi'
 import { FaListUl, FaListOl } from 'react-icons/fa'
 
 interface Props {

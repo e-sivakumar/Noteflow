@@ -4,7 +4,7 @@ import { FiFolder, FiFolderPlus } from 'react-icons/fi';
 import CardDesign from '../components/CardDesign';
 import CustomDropdown, {type DropdownOption} from '../components/CustomDropDown';
 import FilterBar, { type FilterOption } from '../components/FilterBar';
-import SearchDropdown, { type SearchOption } from '../components/SearchBox';
+import SearchDropdown from '../components/SearchBox';
 import { useModal } from '../hooks/useModal';
 import Modal from '../components/Modal';
 
@@ -32,7 +32,7 @@ export default function FolderList() {
   const [sort, setSort] = useState<DropdownOption>(sortOptions[2])
 
   // 2) Fetch filter options, always include “All”
-  const { data: apiFilters = [], isLoading: loadingFilters } = useFolderFilters()
+  const { data: apiFilters = [] } = useFolderFilters()
   const filterOptions: FilterOption[] = [
     { label: 'All', value: '' },
     // ...apiFilters,
@@ -55,7 +55,6 @@ export default function FolderList() {
     data,
     isLoading,
     isError,
-    isFetching,
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
@@ -124,8 +123,6 @@ export default function FolderList() {
   const handleDelete = (id: string) => {
     deleteFolder.mutate(id)
   }
-  // const [category, setCategory] = useState('');
-  const [blockButton, setBlockButton] = useState(false);
 
   return (
     <div>
@@ -180,13 +177,13 @@ export default function FolderList() {
                 // disabled={blockButton}
                 disabled={createFolder.isPending || updateFolder.isPending}
                 onClick={close} 
-                className={`btn-secondary cancel-btn ${blockButton ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                className={`btn-secondary cancel-btn ${(createFolder.isPending || updateFolder.isPending) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Cancel
               </button>
               <button 
               onClick={handleSave}
               disabled={createFolder.isPending || updateFolder.isPending}
-              className= {`btn-primary submit-btn ${blockButton ? 'opacity-50 cursor-not-allowed' : ''}`} >
+              className= {`btn-primary submit-btn ${(createFolder.isPending || updateFolder.isPending) ? 'opacity-50 cursor-not-allowed' : ''}`} >
                 {(createFolder.isPending || updateFolder.isPending)
                 ? 'Saving…'
                 : 'Save'}

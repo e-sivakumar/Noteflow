@@ -1,5 +1,5 @@
-import { useNavigate, useParams } from 'react-router-dom'
-import { FiFilePlus, FiFileText } from 'react-icons/fi'
+import { useNavigate } from 'react-router-dom'
+import { FiFileText } from 'react-icons/fi'
 import CardDesign from '../components/CardDesign'
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import RichTextEditor from '../components/RichTextEditor';
 import CustomDropdown, {type DropdownOption} from '../components/CustomDropDown';
 import type { FilterOption } from '../components/FilterBar';
-import { useArchiveNote, useCreateNote, useDeleteNote, useGetNote, useAllNotes, usePinNote, useSearchAllNotes, useUnarchiveNote, useUnPinNote, useUpdateNote } from '../hooks/useNotes';
+import { useArchiveNote, useCreateNote, useDeleteNote, useAllNotes, usePinNote, useSearchAllNotes, useUnarchiveNote, useUnPinNote, useUpdateNote } from '../hooks/useNotes';
 import { getNotes, type Note } from '../api/notes';
 import SearchDropdown from '../components/SearchBox';
 import FilterBar from '../components/FilterBar';
@@ -44,7 +44,6 @@ export default function AllNotesList() {
       data,
       isLoading,
       isError,
-      isFetching,
       isFetchingNextPage,
       fetchNextPage,
       hasNextPage,
@@ -136,10 +135,7 @@ export default function AllNotesList() {
     }
     const handleDelete = (id: string) => {
       deleteNote.mutate(id)
-    }
-    // const [category, setCategory] = useState('');
-    const [blockButton, setBlockButton] = useState(false);
- 
+    } 
 
   return (
     <div>
@@ -203,21 +199,13 @@ export default function AllNotesList() {
                         })
                         close()
                       }} 
-                      className={`btn-secondary cancel-btn ${blockButton ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      className={`btn-secondary cancel-btn ${(createNote.isPending || updateNote.isPending) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                         Cancel
                     </button>
-                    <button 
-                    // onClick={
-                    //   async()=>{
-                    //     setBlockButton(true)
-                    //     await save()
-                    //     setBlockButton(false)
-                    //     close()
-                    //   }
-                    // }   
+                    <button  
                     onClick={handleSave}
                     disabled={createNote.isPending || createNote.isPending}
-                    className= {`btn-primary submit-btn ${blockButton ? 'opacity-50 cursor-not-allowed' : ''}`} >
+                    className= {`btn-primary submit-btn ${(createNote.isPending || updateNote.isPending) ? 'opacity-50 cursor-not-allowed' : ''}`} >
                       {(createNote.isPending || updateNote.isPending)
                 ? 'Saving…'
                 : 'Save'}

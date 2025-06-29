@@ -1,5 +1,4 @@
-
-// 📁 src/context/ThemeContext.tsx
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useLayoutEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark';

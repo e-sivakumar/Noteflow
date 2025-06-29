@@ -1,5 +1,5 @@
 // src/hooks/folders.ts
-import { useQuery, useInfiniteQuery, keepPreviousData, useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, keepPreviousData, useMutation, useQueryClient} from '@tanstack/react-query'
 import {
   fetchFolders,
   fetchFilterOptions,
@@ -8,7 +8,6 @@ import {
   updateFolderApi,
   deleteFolderApi,
   type Folder,
-  type FilterOption,
   type FetchFoldersResponse,
   fetchFolderList,
 } from '../api/folders'

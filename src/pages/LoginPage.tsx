@@ -4,6 +4,7 @@ import TextField from '../components/InputField'; // Reusable input component
 import { isRequired } from '../utils/Validation'; // Validation utilities
 import { useNavigate } from 'react-router-dom'; // For redirection after login
 import { useSignIn } from '../hooks/useSignIn';
+import axios from 'axios';
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -32,11 +33,16 @@ const LoginPage: React.FC = () => {
       // alert("loged in")
       console.log('Login successful:');
       navigate('/dashboard'); // Redirect to your main notes page
-    } catch (err: any) {
+    } catch (err: unknown ) {
       // Handle API errors
-      setFormError(err?.response?.data?.message || 'Login failed. Please try again.');
-      alert(`error ${err?.message}`)
-      console.error('Login error:', err?.response?.data?.message );
+      // setFormError(err?.response?.data?.message || 'Login failed. Please try again.');
+      // console.error('Login error:', err?.response?.data?.message );
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setFormError(err.response.data.message)
+      } else {
+        setFormError('Login failed. Please try again.')
+      }
+      console.error('Login error:', err)
     } 
   };
 

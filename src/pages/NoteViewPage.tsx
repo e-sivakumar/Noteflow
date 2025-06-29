@@ -1,142 +1,11 @@
-// // src/pages/NoteViewPage.tsx
-// import React, { useEffect, useState } from 'react'
-// import { useParams, useNavigate } from 'react-router-dom'
-// import {
-//   FiChevronLeft,
-//   FiEdit2,
-//   FiTrash2,
-//   FiArchive,
-//   FiInbox,
-//   FiMapPin,
-//   FiArrowUpCircle,
-// } from 'react-icons/fi'
-// import Modal from '../components/Modal'
-// import { useModal } from '../hooks/useModal'
-// import RichTextEditor from '../components/RichTextEditor'
-// import { useNotes, useGetNote, useUpdateNote, useDeleteNote, usePinNote, useUnarchiveNote, useArchiveNote, useUnPinNote } from '../hooks/useNotes'
-// import { getNotes, type Note } from '../api/notes'
-// import { useQuery } from '@tanstack/react-query';
-// import { FaThumbtack } from 'react-icons/fa';
-// import { MdArchive } from 'react-icons/md';
-
-// export default function NoteViewPage() {
-//   const { folderId, noteId } = useParams<{ folderId: string; noteId: string }>()
-//   const navigate = useNavigate()
-
-//   const {
-//     data: note,
-//     isLoading,
-//     isError,
-//     error,
-//   } = useQuery({
-//     queryKey: ['getNotes', noteId],
-//     queryFn: () => getNotes(noteId as string),
-//     enabled: !!noteId, // prevent fetching if noteId is undefined
-//   })
-
-//   // Collate your mutations
-//   const updateNote    = useUpdateNote()
-//   const deleteNote    = useDeleteNote()
-//   const pinNote       = usePinNote()
-//   const unPinNote     = useUnPinNote()
-//   const archiveNote   = useArchiveNote()
-//   const unarchiveNote = useUnarchiveNote()
-//   // Modal for edit
-//   const { isOpen, open, close } = useModal()
-//   // Local edit state
-//   const [title, setTitle]     = useState('')
-//   const [content, setContent] = useState('<p></p>')
-
-//   // When note arrives, seed editor fields
-//   useEffect(() => {
-//     if (note) {
-//       setTitle(note.name)
-//       setContent(note.content || '<p></p>')
-//     }
-//   }, [note])
-
-//   if (isLoading) return <div>Loading…</div>
-//   if (isError || !note) return <div>Error loading note.</div>
-
-//   const handleDelete = async () => {
-//     await deleteNote.mutateAsync(noteId!)
-//     navigate(-1)
-//   }
-
-//   const handleSave = async () => {
-//     await updateNote.mutateAsync({
-//       id: noteId!,
-//       data: { name: title, content },
-//     })
-//     close()
-//   }
-
-//   return (
-//     <div className="prose dark:prose-invert mx-auto p-6">
-//       <button
-//         onClick={() => navigate(-1)}
-//         className="mb-4 text-gray-600 dark:text-gray-300"
-//       >
-//         <FiChevronLeft size={24} /> Back
-//       </button>
-
-//       <div className="flex justify-between items-start mb-6">
-//         <h1 className="text-3xl font-bold">{note.name}</h1>
-//         <div className="flex space-x-2">
-//           {note.isPinned
-//             ? <button onClick={() => unPinNote.mutate({id: noteId!})}><FaThumbtack/></button>
-//             : <button onClick={() => pinNote.mutate({id: noteId!})}><FaThumbtack/></button>
-//           }
-//           {note.isArchived
-//             ? <button onClick={() => unarchiveNote.mutate({id: noteId!})}><MdArchive/></button>
-//             : <button onClick={() => archiveNote.mutate({id: noteId!})}><MdArchive/></button>
-//           }
-//           <button onClick={open}><FiEdit2/></button>
-//           <button onClick={handleDelete}><FiTrash2/></button>
-//         </div>
-//       </div>
-
-//       <div className="bg-white dark:bg-gray-800 rounded p-4">
-//         <div dangerouslySetInnerHTML={{ __html: note.content || '' }} />
-//       </div>
-
-//       <Modal isOpen={isOpen} onClose={close} title="Edit Note">
-//         <div className="space-y-4">
-//           <input
-//             type="text"
-//             className="w-full border rounded px-3 py-2"
-//             value={title}
-//             onChange={e => setTitle(e.target.value)}
-//           />
-//           <RichTextEditor
-//             content={content}
-//             onUpdate={setContent}
-//             className="border rounded"
-//           />
-//           <div className="flex justify-end space-x-2">
-//             <button onClick={close} className="btn-secondary">Cancel</button>
-//             <button onClick={handleSave} className="btn-primary">Save</button>
-//           </div>
-//         </div>
-//       </Modal>
-//     </div>
-//   )
-// }
-
-
-
-
-// src/pages/NoteViewPage.tsx
-import React, { useEffect, useState } from 'react'
-import { useParams, useNavigate, type To } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import {
   FiChevronLeft,
   FiEdit2,
   FiTrash2,
   FiSave,
-  FiX,
   FiMoreVertical,
-  FiCalendar,
   FiClock,
 } from 'react-icons/fi'
 import { FaThumbtack } from 'react-icons/fa'
@@ -144,8 +13,8 @@ import { MdArchive, MdUnarchive } from 'react-icons/md'
 import Modal from '../components/Modal'
 import { useModal } from '../hooks/useModal'
 import RichTextEditor from '../components/RichTextEditor'
-import { useNotes, useGetNote, useUpdateNote, useDeleteNote, usePinNote, useUnarchiveNote, useArchiveNote, useUnPinNote } from '../hooks/useNotes'
-import { getNotes, type Note } from '../api/notes'
+import { useUpdateNote, useDeleteNote, usePinNote, useUnarchiveNote, useArchiveNote, useUnPinNote } from '../hooks/useNotes'
+import { getNotes } from '../api/notes'
 import { useQuery } from '@tanstack/react-query'
 
 export default function NoteViewPage() {
@@ -156,7 +25,6 @@ export default function NoteViewPage() {
     data: note,
     isLoading,
     isError,
-    error,
   } = useQuery({
     queryKey: ['getNotes', noteId],
     queryFn: () => getNotes(noteId as string),

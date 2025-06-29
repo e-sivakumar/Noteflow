@@ -4,6 +4,7 @@ import TextField from '../components/InputField';
 import { isRequired, isValidEmail, isStrongPassword, doPasswordsMatch, isValidPhoneNumber } from '../utils/Validation';
 import { useNavigate } from 'react-router-dom';
 import { useSignUp } from '../hooks/useSignUp';
+import axios from 'axios';
 
 const SignupPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -58,10 +59,15 @@ const SignupPage: React.FC = () => {
       // console.log('Sign up successful:', data);
       await signup.mutateAsync({ name, email, phoneNumber: phone, username, password, confirmPassword })
       alert('Sign up successful! Please log in.');
-      // navigate('/login'); // Redirect to login page after successful signup
-    } catch (err: any) {
-      setErrors(prev => ({ ...prev, form: err?.response?.data?.message || 'Sign up failed. Please try again.' }));
-      console.error('Sign up error:', err?.response?.data?.message);
+      navigate('/login'); // Redirect to login page after successful signup
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        setErrors(prev => ({ ...prev, form: err?.response?.data?.message || 'Sign up failed. Please try again.' }));
+        console.error('Sign up error:', err?.response?.data?.message);
+      } else {
+        setErrors(prev => ({ ...prev, form: 'Sign up failed. Please try again.' }));
+      }
+      console.error('Login error:', err)
     } 
   };
 

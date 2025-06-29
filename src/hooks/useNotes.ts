@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery, keepPreviousData, useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, keepPreviousData, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   fetchNotes,
   fetchAllNotes,
@@ -13,7 +13,6 @@ import {
   PinNoteApi,
   UnpinNoteApi,
   type Note,
-  type FilterOption,
   type FetchNotesResponse,
   fetchNoteList,
 } from '../api/notes'

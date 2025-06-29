@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { FiChevronDown, FiChevronUp, FiFilter, FiTrendingDown } from 'react-icons/fi'
+import { FiChevronDown, FiChevronUp } from 'react-icons/fi'
 import { MdSort } from 'react-icons/md';
 
 export type DropdownOption = {
@@ -12,7 +12,7 @@ interface CustomDropdownProps {
   options: DropdownOption[]
   selected: DropdownOption
   onSelect: (opt: DropdownOption) => void
-  isFilter ?: Boolean
+  isFilter ?: boolean
 }
 
 export default function CustomDropdown({

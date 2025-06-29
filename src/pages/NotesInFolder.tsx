@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import RichTextEditor from '../components/RichTextEditor';
 import CustomDropdown, {type DropdownOption} from '../components/CustomDropDown';
 import type { FilterOption } from '../components/FilterBar';
-import { useArchiveNote, useCreateNote, useDeleteNote, useGetNote, useNotes, usePinNote, useSearchNotes, useUnarchiveNote, useUnPinNote, useUpdateNote } from '../hooks/useNotes';
+import { useArchiveNote, useCreateNote, useDeleteNote, useNotes, usePinNote, useSearchNotes, useUnarchiveNote, useUnPinNote, useUpdateNote } from '../hooks/useNotes';
 import { getNotes, type Note } from '../api/notes';
 import SearchDropdown from '../components/SearchBox';
 import FilterBar from '../components/FilterBar';
@@ -49,7 +49,6 @@ export default function NotesInFolder() {
       data,
       isLoading,
       isError,
-      isFetching,
       isFetchingNextPage,
       fetchNextPage,
       hasNextPage,
@@ -145,13 +144,9 @@ export default function NotesInFolder() {
     const handleUnarchiveNote = async(id: string)=>{
       await unarchiveNote.mutateAsync({id})
     }
-    // const handleDelete = (id: string) => {
-    //   deleteNote.mutate(id)
-    // }
     const handleDelete = (id: string) => {
       setConfirmDeleteId(id); // show confirmation modal
     };
-    const [blockButton, setBlockButton] = useState(false);
     
 
   return (
@@ -192,14 +187,6 @@ export default function NotesInFolder() {
                     value={editing.name}
                     onChange={(e) => setEditing(ps => ({ ...ps, name: e.target.value }))}
                   />
-                  {/* Add category list options in input focused */}
-                  {/* <input 
-                    type="text"
-                    className='input-base'
-                    placeholder="Enter your contents here...."
-                    value={editing.content}
-                    onChange={e => setEditing(ps => ({ ...ps, category: e.target.value }))}
-                  /> */}
                   <RichTextEditor
                     content={editing.content}
                     onUpdate={e => setEditing(ps => ({ ...ps, content: e }))}
@@ -217,21 +204,13 @@ export default function NotesInFolder() {
                         })
                         close()
                       }} 
-                      className={`btn-secondary cancel-btn ${blockButton ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      className={`btn-secondary cancel-btn ${(createNote.isPending || updateNote.isPending) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                         Cancel
                     </button>
-                    <button 
-                    // onClick={
-                    //   async()=>{
-                    //     setBlockButton(true)
-                    //     await save()
-                    //     setBlockButton(false)
-                    //     close()
-                    //   }
-                    // }   
+                    <button  
                     onClick={handleSave}
                     disabled={createNote.isPending || createNote.isPending}
-                    className= {`btn-primary submit-btn ${blockButton ? 'opacity-50 cursor-not-allowed' : ''}`} >
+                    className= {`btn-primary submit-btn ${(createNote.isPending || updateNote.isPending) ? 'opacity-50 cursor-not-allowed' : ''}`} >
                       {(createNote.isPending || updateNote.isPending)
                 ? 'Saving…'
                 : 'Save'}

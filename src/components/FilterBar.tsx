@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FiChevronDown, FiChevronUp, FiFilter } from 'react-icons/fi'
+import { FiChevronDown, FiChevronUp } from 'react-icons/fi'
 import { MdTune } from 'react-icons/md';
 
 export interface FilterOption {

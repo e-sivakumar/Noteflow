@@ -62,12 +62,12 @@ const FloatingNote = ({ delay, duration, children, className = "" }: {delay: num
 
 // Typing animation component
 const TypingText = () => {
-  const texts = ['Meeting Notes...', 'Project Ideas...', 'Daily Tasks...', 'Quick Thoughts...'];
   const [currentText, setCurrentText] = useState(0);
   const [displayText, setDisplayText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
 
   useEffect(() => {
+    const texts = ['Meeting Notes...', 'Project Ideas...', 'Daily Tasks...', 'Quick Thoughts...'];
     const text = texts[currentText];
     let timeout: number;
 
@@ -91,7 +91,7 @@ const TypingText = () => {
     }
 
     return () => clearTimeout(timeout);
-  }, [displayText, isTyping, currentText, texts]);
+  }, [displayText, isTyping, currentText]);
 
   return (
     <span className="text-blue-400">

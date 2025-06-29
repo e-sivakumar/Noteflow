@@ -29,7 +29,7 @@ export const isRequired = (value: string | undefined | null): boolean => {
   export const isValidPhoneNumber = (phone: string): boolean => {
     if (!isRequired(phone)) return false;
     // Allows digits and optional hyphens/spaces. Adjust regex for specific needs.
-    return /^\+?[\d\s\-]{7,15}$/.test(phone);
+    return /^\+?[\d\s-]{7,15}$/.test(phone);
   };
   
   // Check if two passwords match (for "confirm password" fields)
