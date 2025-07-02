@@ -21,11 +21,12 @@ export default function FilterBar({ options, selected, onSelect }: Props) {
       {/* toggle button */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2  p-2
-                 bg-slate-50 dark:bg-gray-700 text-black dark:text-slate-100
+        className={`flex items-center gap-2  p-2
+                 ${open ? 'bg-slate-100 dark:bg-gray-600' : 'bg-slate-50 dark:bg-gray-700'} 
+                  text-black dark:text-slate-100
                  focus:outline-none focus:ring-0
                    border border-gray-300 dark:border-gray-600 rounded-lg shadow-md
-                   hover:bg-gray-200 dark:hover:bg-gray-500 transition"
+                   hover:bg-gray-200 dark:hover:bg-gray-500 transition`}
       >
         <MdTune size={16}/>
         <span className='text-[0.7rem] sm:text-[0.8rem]'>Filter</span>

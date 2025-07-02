@@ -10,6 +10,7 @@ import AllNotesList from '../pages/AllNotesList';
 import NotesInFolder from '../pages/NotesInFolder';
 import FolderList from '../pages/FolderList';
 import NoteViewPage from '../pages/NoteViewPage';
+import UserProfile from '../pages/UserProfile';
 
 const ProtectedRoute = () => {
   const { isAuthenticated } = useAuth();
@@ -41,6 +42,8 @@ export default function AppRoutes() {
             <Route path="note/:noteId" element={<NoteViewPage/>}/>
           </Route>
       </Route>
+      
+      <Route path='/profile' element={<UserProfile/>} />
 
       <Route path="*" element={<div>404 Not Found</div>} />
     </Routes>

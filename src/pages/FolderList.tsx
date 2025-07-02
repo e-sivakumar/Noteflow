@@ -7,7 +7,7 @@ import FilterBar, { type FilterOption } from '../components/FilterBar';
 import SearchDropdown from '../components/SearchBox';
 import { useModal } from '../hooks/useModal';
 import Modal from '../components/Modal';
-
+import { useToast } from '../components/ToastProvider';
 
 import {
   useFolders,
@@ -21,6 +21,7 @@ import type { Folder } from '../api/folders';
 
 export default function FolderList() {
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
    // 1) Sort options (fixed)
    const sortOptions: DropdownOption[] = [
@@ -42,11 +43,11 @@ export default function FolderList() {
     })),
   ]
   const [filter, setFilter] = useState<FilterOption>(filterOptions[0])
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   
   const [query, setQuery] = useState('');
   // 3) Search state & suggestions
   const { data: searchResults = [] } = useSearchFolders(query)
-  console.log("asass", searchResults)
 
   const limit = 4
 
@@ -68,8 +69,7 @@ export default function FolderList() {
     if (!loadMoreRef.current || !hasNextPage) return
     const obs = new IntersectionObserver(
       ([entry]) => entry.isIntersecting && fetchNextPage(),
-      { rootMargin: '20px' }
-      // it has 200px
+      { rootMargin: '200px' }
     )
     obs.observe(loadMoreRef.current)
     return () => obs.disconnect()
@@ -105,24 +105,58 @@ export default function FolderList() {
     if(!editing.name) return false
     return true
   }
-  const handleSave = () => {
-    if (editing.id) {
-      updateFolder.mutate({ id: editing.id, data: { name: editing.name, category: editing.category } })
-    } else {
-      if(!validateFolderForm()) {
-        setErrorName(true); 
-        return
-      }
-      else{
-        setErrorName(false)
-        createFolder.mutate({ name: editing.name, category: editing.category })
-      }
+  // const handleSave = () => {
+  //   if (editing.id) {
+  //     updateFolder.mutate({ id: editing.id, data: { name: editing.name, category: editing.category } })
+  //   } else {
+  //     if(!validateFolderForm()) {
+  //       setErrorName(true); 
+  //       return
+  //     }
+  //     else{
+  //       setErrorName(false)
+  //       createFolder.mutate({ name: editing.name, category: editing.category })
+  //     }
+  //   }
+  //   close()
+  // }
+  const handleSave = async () => {
+    if (!validateFolderForm()) {
+      setErrorName(true);
+      return;
     }
-    close()
-  }
-  const handleDelete = (id: string) => {
-    deleteFolder.mutate(id)
-  }
+    try {
+      if (editing.id) {
+        await updateFolder.mutateAsync({
+          id: editing.id,
+          data: { name: editing.name, category: editing.category }
+        });
+        addToast('success',`Folder "${editing.name}" updated successfully.`);
+      } else {
+        await createFolder.mutateAsync({
+          name: editing.name,
+          category: editing.category
+        });
+        addToast('success', `Folder "${editing.name}" created successfully.`);
+      }
+      close();
+    } catch {
+      addToast('error', `Folder ${editing.id ? 'updation' : 'creation'} failed. Please try again.`);
+    }
+  };
+  // const handleDelete = (id: string) => {
+  //   deleteFolder.mutate(id)
+  // }
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return;
+    try {
+      await deleteFolder.mutateAsync(confirmDeleteId);
+      addToast('success', 'Folder deleted successfully.');
+      setConfirmDeleteId(null);
+    } catch (err: unknown) {
+      addToast('error', 'Failed to delete folder.');
+    }
+  };
 
   return (
     <div>
@@ -191,6 +225,31 @@ export default function FolderList() {
             </div>
           </div>
         </Modal>
+        <Modal
+        isOpen={!!confirmDeleteId}
+        onClose={() => setConfirmDeleteId(null)}
+        title="Delete Folder"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-800 dark:text-gray-200">
+            Are you sure you want to delete this folder? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-2">
+            <button
+              className="btn-secondary"
+              onClick={() => setConfirmDeleteId(null)}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn-danger"
+              onClick={confirmDelete}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
 
         <div className="flex flex-wrap items-center gap-4 mb-6">
         {/* 1) Search on left */}
@@ -225,7 +284,7 @@ export default function FolderList() {
             {/*
               2) The actual grid of all pages (flattened)
             */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={`${folders.length > 0 ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' : ''} `}>
               {folders.length > 0
                 ? folders.map((f) => (
                     <CardDesign
@@ -237,13 +296,23 @@ export default function FolderList() {
                       updatedAt={f.updatedAt}
                       onClick={() => navigate(`/folder/${f.folderId}`)}
                       onEdit={() => openEdit(f)}
-                      onDelete={() => handleDelete(f.folderId)}
+                      // onDelete={() => handleDelete(f.folderId)}
+                      onDelete={() => setConfirmDeleteId(f.folderId)}
                     />
                   ))
                 : (
-                  <div className="col-span-full text-center text-gray-500">
-                    No folders found.
-                  </div>
+                  // <div className="col-span-full text-center text-gray-500">
+                  //   No folders found.
+                  // </div>
+                  <div className='flex flex-col gap-3 items-center justify-center min-h-48'>
+                            <div 
+                                        className='cursor-pointer text-gray-700 dark:text-gray-200  p-[0.5rem] transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg rounded-lg '
+                                        onClick={()=>open()}
+                                        >
+                                          <FiFolderPlus size={100}/>
+                                      </div>
+                                      <p className='text-black dark:text-white font-semibold text-lg'>Add Folder</p>
+                                      </div>
                 )}
             </div>
 

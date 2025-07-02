@@ -164,7 +164,7 @@ export default function NoteViewPage() {
                     hidden sm:block
                     p-2 rounded-lg transition-colors ${
                   note.isArchived
-                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
                 title={note.isArchived ? 'Unarchive note' : 'Archive note'}

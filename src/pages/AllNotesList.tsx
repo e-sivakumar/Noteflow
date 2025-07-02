@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { FiFileText } from 'react-icons/fi'
+import { FiFilePlus, FiFileText } from 'react-icons/fi'
 import CardDesign from '../components/CardDesign'
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
@@ -12,10 +12,13 @@ import { getNotes, type Note } from '../api/notes';
 import SearchDropdown from '../components/SearchBox';
 import FilterBar from '../components/FilterBar';
 import { useQueryClient } from '@tanstack/react-query';
+import { useToast } from '../components/ToastProvider';
+
 
 export default function AllNotesList() {
 
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
 
   const navigate = useNavigate();
 
@@ -56,8 +59,7 @@ export default function AllNotesList() {
       if (!loadMoreRef.current || !hasNextPage) return
       const obs = new IntersectionObserver(
         ([entry]) => entry.isIntersecting && fetchNextPage(),
-        { rootMargin: '20px' }
-        // it has 200px
+        { rootMargin: '200px' }
       )
       obs.observe(loadMoreRef.current)
       return () => obs.disconnect()
@@ -75,6 +77,7 @@ export default function AllNotesList() {
 
 
   const { isOpen, open, close } = useModal()
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const [editing, setEditing] = useState<{
     id?: string
@@ -104,38 +107,92 @@ export default function AllNotesList() {
       if(!editing.name || !editing.content) return false
       return true
     }
-    const handleSave = () => {
-      if (editing.id) {
-        if(!validateFolderForm()) {
-          setErrorName(true); 
-          return
-        }
-        setErrorName(false); 
-        updateNote.mutate({ id: editing.id, data: { name: editing.name, content: editing.content } })
-      } else {
-        alert("You should not create note here")
+    const handleSave = async() => {
+      if(!validateFolderForm()) {
+        setErrorName(true); 
+        return
       }
+      setErrorName(false); 
+      // if (editing.id) {
+      //   updateNote.mutate({ id: editing.id, data: { name: editing.name, content: editing.content } })
+      // }
+      try {
+             await updateNote.mutateAsync({
+               id: editing.id!,
+               data: { name: editing.name, content: editing.content }
+             });
+             addToast('success',`Note "${editing.name}" updated successfully.`);
+           } catch {
+             addToast('error','Note update failed. Please try again.');
+           }
       setEditing({
         name: '',
         content:'<p></p>',
       })
       close()
     }
-    const handlePinNote = async(id: string)=>{
-      await pinNote.mutateAsync({id})
-    }
-    const handleUnPinNote = async(id: string)=>{
-      await unPinNote.mutateAsync({id})
-    }
-    const handleArchiveNote = async(id: string)=>{
-      await archiveNote.mutateAsync({id})
-    }
-    const handleUnarchiveNote = async(id: string)=>{
-      await unarchiveNote.mutateAsync({id})
-    }
-    const handleDelete = (id: string) => {
-      deleteNote.mutate(id)
-    } 
+    // const handlePinNote = async(id: string)=>{
+    //   await pinNote.mutateAsync({id})
+    // }
+    // const handleUnPinNote = async(id: string)=>{
+    //   await unPinNote.mutateAsync({id})
+    // }
+    // const handleArchiveNote = async(id: string)=>{
+    //   await archiveNote.mutateAsync({id})
+    // }
+    // const handleUnarchiveNote = async(id: string)=>{
+    //   await unarchiveNote.mutateAsync({id})
+    // }
+
+    const handlePinNote = async (id: string) => {
+      try {
+        await pinNote.mutateAsync({ id });
+        addToast('success', 'Note pinned successfully.');
+      } catch {
+        addToast('error', 'Failed to pin note.');
+      }
+    };
+    
+    const handleUnPinNote = async (id: string) => {
+      try {
+        await unPinNote.mutateAsync({ id });
+        addToast('success', 'Note un-pinned successfully.');
+      } catch {
+        addToast('error', 'Failed to un-pin note.');
+      }
+    };
+    
+    const handleArchiveNote = async (id: string) => {
+      try {
+        await archiveNote.mutateAsync({ id });
+        addToast('success', 'Note archived successfully.');
+      } catch {
+        addToast('error', 'Failed to archive note.');
+      }
+    };
+    
+    const handleUnarchiveNote = async (id: string) => {
+      try {
+        await unarchiveNote.mutateAsync({ id });
+        addToast('success', 'Note restored from archive.');
+      } catch {
+        addToast('error', 'Failed to unarchive note.');
+      }
+    };
+
+    // const handleDelete = (id: string) => {
+    //   deleteNote.mutate(id)
+    // }
+    const confirmDelete = async () => {
+      if (!confirmDeleteId) return;
+      try {
+        await deleteNote.mutateAsync(confirmDeleteId);
+        addToast('success', 'Note deleted successfully.');
+        setConfirmDeleteId(null);
+      } catch {
+        addToast('error', 'Failed to delete note.');
+      }
+    };
 
   return (
     <div>
@@ -213,6 +270,32 @@ export default function AllNotesList() {
                   </div>
                 </div>
               </Modal>
+              <Modal
+  isOpen={!!confirmDeleteId}
+  onClose={() => setConfirmDeleteId(null)}
+  title="Delete Note"
+>
+  <div className="space-y-4">
+    <p className="text-gray-800 dark:text-gray-200">
+      Are you sure you want to delete this note? This action cannot be undone.
+    </p>
+    <div className="flex justify-end gap-2">
+      <button
+        className="btn-secondary"
+        onClick={() => setConfirmDeleteId(null)}
+      >
+        Cancel
+      </button>
+      <button
+        className="btn-danger"
+        onClick={confirmDelete}
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+</Modal>
+
 
               <div className="flex flex-wrap items-center gap-4 mb-6">
                       {/* 1) Search on left */}
@@ -251,7 +334,7 @@ export default function AllNotesList() {
         ) 
         : (
           <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className={`${notes.length > 0 ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : ''} `}>
         {
           notes.length > 0 ?
         notes.map(note => (
@@ -263,7 +346,8 @@ export default function AllNotesList() {
           icon={<FiFileText size={24} className="text-green-500 mr-2" />}
           // description={note.snippet}
           onEdit={() => openEdit(note)}
-          onDelete={() => handleDelete(note.noteId)}
+          // onDelete={() => handleDelete(note.noteId)}
+          onDelete={() => setConfirmDeleteId(note.noteId)}
           onClick={()=>{navigate(`/folder/${note.folderId}/note/${note.noteId}`)}}
           isNotes= {true}
           isPinned={note.isPinned}
@@ -277,9 +361,18 @@ export default function AllNotesList() {
           />
         )) :
         (
-          <div className="col-span-full text-center text-gray-500">
-            No Notes found.
-          </div>
+          // <div className="col-span-full text-center text-gray-500">
+          //   No Notes found.
+          // </div>
+          <div className='flex flex-col gap-3 items-center justify-center min-h-48'>
+          <div 
+                      className='cursor-pointer text-gray-700 dark:text-gray-200  p-[0.5rem] transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg rounded-lg '
+                      onClick={()=>navigate('/dashboard')}
+                      >
+                        <FiFilePlus size={100}/>
+                    </div>
+                    <p className='text-black dark:text-white font-semibold text-lg'>Add Note</p>
+                    </div>
         )
         }
         {/* {notes.length === 0 && (

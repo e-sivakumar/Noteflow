@@ -12,12 +12,8 @@ import { getNotes, type Note } from '../api/notes';
 import SearchDropdown from '../components/SearchBox';
 import FilterBar from '../components/FilterBar';
 import { useQueryClient } from '@tanstack/react-query';
-
-// const dummyNotes = [
-//   { id: 'a1', folderId: '1', title: 'Alpha Plan',   snippet: 'Outline the phases...', createdAt: '2025-04-11' },
-//   { id: 'a2', folderId: '1', title: 'Alpha Budget', snippet: 'Cost analysis...',       createdAt: '2025-04-12' },
-//   { id: 'b1', folderId: '2', title: 'Groceries',    snippet: 'Buy fruits and veggies',createdAt: '2025-04-13' },
-// ]
+import { useToast } from '../components/ToastProvider';
+import axios from 'axios';
 
 export default function NotesInFolder() {
   const navigate = useNavigate();
@@ -54,7 +50,6 @@ export default function NotesInFolder() {
       hasNextPage,
     } = useNotes(folderId as string,filter.value, sort.value, limit)
   
-  // const notes = dummyNotes.filter(n => n.folderId === folderId)
   const notes = data?.pages.flatMap(p => p.notes) ?? []
 
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -63,11 +58,12 @@ export default function NotesInFolder() {
       const obs = new IntersectionObserver(
         ([entry]) => entry.isIntersecting && fetchNextPage(),
         { rootMargin: '200px' }
-        // it has 200px
       )
       obs.observe(loadMoreRef.current)
       return () => obs.disconnect()
     }, [fetchNextPage, hasNextPage])
+
+      const { addToast } = useToast();
 
 
   const createNote = useCreateNote();
@@ -77,7 +73,6 @@ export default function NotesInFolder() {
   const pinNote = usePinNote();
   const unPinNote = useUnPinNote();
   const deleteNote = useDeleteNote();
-  // const getNote = useGetNote();
 
 
   const { isOpen, open, close } = useModal()
@@ -111,39 +106,72 @@ export default function NotesInFolder() {
       if(!editing.name || !editing.content) return false
       return true
     }
-    const handleSave = () => {
-      if (editing.id) {
-        if(!validateFolderForm()) {
-          setErrorName(true); 
-          return
-        }
-        updateNote.mutate({ id: editing.id, data: { name: editing.name, content: editing.content } })
-      } else {
-        if(!validateFolderForm()) {
-          setErrorName(true); 
-          return
-        }
-        setErrorName(false)
-        createNote.mutate({folderId: folderId as string , data: { name: editing.name, content: editing.content}})
+    const handleSave = async() => {
+      if(!validateFolderForm()) {
+        setErrorName(true); 
+        return
       }
+      try{
+      if (editing.id) {
+        await updateNote.mutateAsync({ id: editing.id, data: { name: editing.name, content: editing.content } })
+        addToast('success', `Note ${editing.name} has been updated successfully.`);
+      } else {
+        setErrorName(false)
+        await createNote.mutateAsync({folderId: folderId as string , data: { name: editing.name, content: editing.content}})
+        addToast('success', `Note ${editing.name} has been created successfully.`);
+      }
+    }
+    catch(err: unknown){
+      if(axios.isAxiosError(err) && err.response?.data?.message){
+        addToast('error', err.response.data.message);
+      }
+      else{
+        addToast('error', `Note ${editing.id ? 'updation' : 'creatoin'} failed, try again later `);
+      }
+    }
       setEditing({
         name: '',
         content:'<p></p>',
       })
       close()
     }
-    const handlePinNote = async(id: string)=>{
-      await pinNote.mutateAsync({id})
-    }
-    const handleUnPinNote = async(id: string)=>{
-      await unPinNote.mutateAsync({id})
-    }
-    const handleArchiveNote = async(id: string)=>{
-      await archiveNote.mutateAsync({id})
-    }
-    const handleUnarchiveNote = async(id: string)=>{
-      await unarchiveNote.mutateAsync({id})
-    }
+
+    const handlePinNote = async (id: string) => {
+      try {
+        await pinNote.mutateAsync({ id });
+        addToast('success', 'Note pinned successfully.');
+      } catch (err: unknown) {
+        addToast('error', 'Couldn’t pin the note. Please try again.');
+      }
+    };
+    
+    const handleUnPinNote = async (id: string) => {
+      try {
+        await unPinNote.mutateAsync({ id });
+        addToast('success', 'Note un-pinned successfully.');
+      } catch (err: unknown) {
+        addToast('error', 'Couldn’t un-pin the note. Please try again.');
+      }
+    };
+
+    const handleArchiveNote = async (id: string) => {
+      try {
+        await archiveNote.mutateAsync({ id });
+        addToast('success', 'Note archived.', 'Archived');
+      } catch (err: unknown) {
+        addToast('error', 'Couldn’t archive the note.');
+      }
+    };
+
+    const handleUnarchiveNote = async (id: string) => {
+      try {
+        await unarchiveNote.mutateAsync({ id });
+        addToast('success', 'Note restored from archive.');
+      } catch (err: unknown) {
+        addToast('error', 'Couldn’t restore the note');
+      }
+    };
+
     const handleDelete = (id: string) => {
       setConfirmDeleteId(id); // show confirmation modal
     };
@@ -286,7 +314,7 @@ export default function NotesInFolder() {
         ) 
         : (
           <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className={`${notes.length > 0 ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : ''} `}>
         {
           notes.length > 0 ?
         notes.map(note => (
@@ -313,15 +341,25 @@ export default function NotesInFolder() {
         ))
         :
         (
-          <div className="col-span-full text-center text-gray-500">
-            No Notes found.
-          </div>
+          // <div className="col-span-full text-center text-gray-500">
+          //   No Notes found.
+          // </div>
+          <div className='flex flex-col gap-3 items-center justify-center min-h-48'>
+          <div 
+                      className='cursor-pointer text-gray-700 dark:text-gray-200  p-[0.5rem] transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg rounded-lg '
+                      onClick={()=>open()}
+                      >
+                        <FiFilePlus size={100}/>
+                    </div>
+                    <p className='text-black dark:text-white font-semibold text-lg'>Add Note</p>
+                    </div>
         )
       }
         {/* {notes.length === 0 && (
           <p className="text-gray-500 dark:text-gray-400">No notes in this folder.</p>
         )} */}
-      </div>
+              </div>
+
       
       <div ref={loadMoreRef} className="h-1" />
 
