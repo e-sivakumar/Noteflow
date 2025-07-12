@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import { useDebouncedValue } from '../hooks/useDebounce';
 
-export type SearchOption = { label: string; value: string };
+export type SearchOption = { label: string; value: string, folderId?: string };
 
 interface Props {
   options: SearchOption[];

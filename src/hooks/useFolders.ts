@@ -1,5 +1,5 @@
 // src/hooks/folders.ts
-import { useQuery, useInfiniteQuery, keepPreviousData, useMutation, useQueryClient} from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, keepPreviousData, useMutation, useQueryClient, type UseQueryOptions, type QueryKey} from '@tanstack/react-query'
 import {
   fetchFolders,
   fetchFilterOptions,
@@ -10,7 +10,14 @@ import {
   type Folder,
   type FetchFoldersResponse,
   fetchFolderList,
+  getFolderName,
 } from '../api/folders'
+
+type BaseOptions = Omit<
+  UseQueryOptions<Folder[], Error, Folder[], QueryKey>,
+  'queryKey' | 'queryFn'
+>
+
 
 // 1) LIST FOLDERS (with filter & sort)
 export function useFolders(
@@ -86,10 +93,18 @@ export function useDeleteFolder() {
 }
 
 //folder list
-export function useFolderList() {
+export function useFolderList(options ?: BaseOptions) {
     return useQuery<Folder[], Error>({
       queryKey: ['folderList'],
       queryFn: fetchFolderList,
-      staleTime: 10 * 60_000,
+      ...options,
     })
   }
+
+export function useFolderName(id: string){
+  return useQuery<Folder, Error>({
+    queryKey: ['folderName', id],
+    queryFn: ()=> getFolderName(id),
+    staleTime: 10 * 60_000,
+  })
+}

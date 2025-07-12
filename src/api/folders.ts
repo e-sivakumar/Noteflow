@@ -72,3 +72,7 @@ export async function updateFolderApi(
 export async function deleteFolderApi(id: string) {
   return api.delete<void>(`/folder/${id}`).then(res => res.data)
 }
+
+export async function getFolderName(id:string){
+  return api.get<Folder>(`/folder/name/${id}`).then(res=> res.data)
+}

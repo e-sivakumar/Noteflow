@@ -56,7 +56,7 @@ export async function searchNotes(q: string) {
   return api
     .get<Note[]>(`/note/search`, { params: { name: q } })
     .then((res) => {
-      return res.data.map((f) => ({ label: f.name, value: f.noteId }));
+      return res.data.map((f) => ({ label: f.name, value: f.noteId, folderId: f.folderId }));
     });
 }
 
@@ -114,6 +114,6 @@ export async function deleteNoteApi(id: string) {
 // note list
 export async function fetchNoteList(id: string): Promise<Note[]> {
  return api
-   .get<Note[]>('/note/list', {params: id})
+   .get<Note[]>(`/note/list/${id}` )
    .then(res => res.data)
 }

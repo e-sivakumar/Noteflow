@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AiOutlineCheckCircle, AiOutlineCloseCircle } from 'react-icons/ai';

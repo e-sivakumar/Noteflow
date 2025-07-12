@@ -1,5 +1,6 @@
 import React from 'react';
 import { CardActionButtons } from './CardActionButtons';
+// import {FiShare2} from 'react-icons/fi'
 
 export interface CardDesignProps {
   id: string;
@@ -76,6 +77,14 @@ export default function CardDesign({
       </p>
 
       <CardActionButtons onArchive={onArchive ? onArchive : ()=>{}} isArchived={isArchived ? true : false} id={id} onPin={onPin ? onPin : ()=>{} } isNotes={isNotes ? true : false} isPinned = {isPinned ? true : false}  onEdit={onEdit} onDelete={onDelete} />
+    
+    {/* add share icon for future */}
+    {/* {isNotes && <div className='absolute right-4 bottom-2'>
+      <div className='w-8 h-8 flex justify-center items-center hover:border-t-sky-500 rounded-full'>
+    <FiShare2 size={18} className='hover:text-blue-400'/>
+    </div>
+    </div>
+    } */}
     </div>
   );
 }

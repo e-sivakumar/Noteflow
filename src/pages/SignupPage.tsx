@@ -1,10 +1,12 @@
 // src/pages/SignupPage.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import TextField from '../components/InputField';
 import { isRequired, isValidEmail, isStrongPassword, doPasswordsMatch, isValidPhoneNumber } from '../utils/Validation';
 import { useNavigate } from 'react-router-dom';
 import { useSignUp } from '../hooks/useSignUp';
 import axios from 'axios';
+import { useToast } from '../components/ToastProvider';
+import { useAuth } from '../context/AuthContext';
 
 const SignupPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -14,6 +16,15 @@ const SignupPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const signup = useSignUp()
+  const { addToast } = useToast();
+
+  const {isAuthenticated} = useAuth();
+  
+  useEffect(()=>{
+    if(isAuthenticated){
+      navigate("/dashboard")
+    }
+  },[])
 
   // State to manage individual field errors
   const [errors, setErrors] = useState({
@@ -59,13 +70,16 @@ const SignupPage: React.FC = () => {
       // console.log('Sign up successful:', data);
       await signup.mutateAsync({ name, email, phoneNumber: phone, username, password, confirmPassword })
       alert('Sign up successful! Please log in.');
+      addToast('success', "Signed up successfully, You can login now !")
       navigate('/login'); // Redirect to login page after successful signup
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.data?.message) {
         setErrors(prev => ({ ...prev, form: err?.response?.data?.message || 'Sign up failed. Please try again.' }));
         console.error('Sign up error:', err?.response?.data?.message);
+        addToast('error',err?.response?.data?.message || 'Sign up failed. Please try again.' )
       } else {
         setErrors(prev => ({ ...prev, form: 'Sign up failed. Please try again.' }));
+        addToast('error', 'Sign up failed. Please try again.' )
       }
       console.error('Login error:', err)
     } 

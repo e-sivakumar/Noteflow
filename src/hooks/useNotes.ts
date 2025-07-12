@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery, keepPreviousData, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, keepPreviousData, useMutation, useQueryClient, type QueryKey, type UseQueryOptions } from '@tanstack/react-query'
 import {
   fetchNotes,
   fetchAllNotes,
@@ -16,6 +16,12 @@ import {
   type FetchNotesResponse,
   fetchNoteList,
 } from '../api/notes'
+
+type BaseOptions = Omit<
+  UseQueryOptions<Note[], Error, Note[], QueryKey>,
+  'queryKey' | 'queryFn'
+>
+
 
 export function useAllNotes(
     filter: string, 
@@ -72,7 +78,7 @@ export function useSearchNotes(id: string, q: string) {
 }
 
 export function useSearchAllNotes(q: string) {
-    return useQuery<{ label: string; value: string }[], Error>({
+    return useQuery<{ label: string; value: string; folderId?: string }[], Error>({
       queryKey: ['searchNotes', q],
       queryFn: () => searchNotes(q),
       enabled: q.length >= 2,
@@ -161,10 +167,10 @@ export function useDeleteNote() {
 }
 
 //note list
-export function useFolderList(id: string) {
+export function useNoteList(id: string, options?: BaseOptions) {
     return useQuery<Note[], Error>({
       queryKey: ['noteList'],
       queryFn: ()=>fetchNoteList(id),
-      staleTime: 10 * 60_000,
+      ...options
     })
   }

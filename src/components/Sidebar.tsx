@@ -33,12 +33,13 @@ export default function Sidebar({ items }: SidebarProps) {
       <div
         className="
           flex-shrink-0 flex flex-col items-center
-          w-14 
+          w-16 
           sticky top-0
           bg-slate-200 dark:bg-gray-800
           thin-scrollbar
           overflow-y-auto
           p-0
+          overflow-x-hidden
           "
           >
         {/* h-auto */}
@@ -63,8 +64,9 @@ export default function Sidebar({ items }: SidebarProps) {
                   `p-3 rounded-lg
                    text-gray-700 dark:text-gray-200
                    hover:bg-blue-500 hover:text-white
+                   dark:hover:bg-blue-500 dark:hover:text-white
                    flex flex-col items-center
-                   ${isActive ? 'bg-blue-600 text-white' : ''}`
+                   ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-gray-800'}`
                 }
               >
                 {item.icon}

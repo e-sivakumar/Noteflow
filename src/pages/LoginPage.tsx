@@ -1,10 +1,12 @@
 // src/pages/LoginPage.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import TextField from '../components/InputField'; // Reusable input component
 import { isRequired } from '../utils/Validation'; // Validation utilities
 import { useNavigate } from 'react-router-dom'; // For redirection after login
 import { useSignIn } from '../hooks/useSignIn';
 import axios from 'axios';
+import { useToast } from '../components/ToastProvider';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -12,6 +14,15 @@ const LoginPage: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null); // For general form errors
   const navigate = useNavigate(); // Hook to navigate programmatically
   const signIn = useSignIn();
+  const { addToast } = useToast();
+
+  const {isAuthenticated} = useAuth();
+  
+  useEffect(()=>{
+    if(isAuthenticated){
+      navigate("/dashboard")
+    }
+  },[])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent default form submission and page reload
@@ -32,14 +43,17 @@ const LoginPage: React.FC = () => {
       await signIn.mutateAsync({usernameoremail: username, password})
       // alert("loged in")
       console.log('Login successful:');
+      addToast('success',"Logged in successfully")
       navigate('/dashboard'); // Redirect to your main notes page
     } catch (err: unknown ) {
       // Handle API errors
       // setFormError(err?.response?.data?.message || 'Login failed. Please try again.');
       // console.error('Login error:', err?.response?.data?.message );
       if (axios.isAxiosError(err) && err.response?.data?.message) {
+      addToast('error',err.response?.data?.message)
         setFormError(err.response.data.message)
       } else {
+      addToast('error','Login failed. Please try again.')
         setFormError('Login failed. Please try again.')
       }
       console.error('Login error:', err)

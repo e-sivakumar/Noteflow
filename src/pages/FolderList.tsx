@@ -153,7 +153,7 @@ export default function FolderList() {
       await deleteFolder.mutateAsync(confirmDeleteId);
       addToast('success', 'Folder deleted successfully.');
       setConfirmDeleteId(null);
-    } catch (err: unknown) {
+    } catch {
       addToast('error', 'Failed to delete folder.');
     }
   };

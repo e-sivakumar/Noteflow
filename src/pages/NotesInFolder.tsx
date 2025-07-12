@@ -14,6 +14,7 @@ import FilterBar from '../components/FilterBar';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../components/ToastProvider';
 import axios from 'axios';
+import { useFolderName } from '../hooks/useFolders';
 
 export default function NotesInFolder() {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ export default function NotesInFolder() {
     
       const [query, setQuery] = useState('');
       // 3) Search state & suggestions
+      const {data: folderData} = useFolderName(folderId as string)
       const { data: searchResults = [] } = useSearchNotes(folderId as string, query)
       
   const limit = 4
@@ -140,7 +142,7 @@ export default function NotesInFolder() {
       try {
         await pinNote.mutateAsync({ id });
         addToast('success', 'Note pinned successfully.');
-      } catch (err: unknown) {
+      } catch {
         addToast('error', 'Couldn’t pin the note. Please try again.');
       }
     };
@@ -149,7 +151,7 @@ export default function NotesInFolder() {
       try {
         await unPinNote.mutateAsync({ id });
         addToast('success', 'Note un-pinned successfully.');
-      } catch (err: unknown) {
+      } catch {
         addToast('error', 'Couldn’t un-pin the note. Please try again.');
       }
     };
@@ -158,7 +160,7 @@ export default function NotesInFolder() {
       try {
         await archiveNote.mutateAsync({ id });
         addToast('success', 'Note archived.', 'Archived');
-      } catch (err: unknown) {
+      } catch {
         addToast('error', 'Couldn’t archive the note.');
       }
     };
@@ -167,7 +169,7 @@ export default function NotesInFolder() {
       try {
         await unarchiveNote.mutateAsync({ id });
         addToast('success', 'Note restored from archive.');
-      } catch (err: unknown) {
+      } catch {
         addToast('error', 'Couldn’t restore the note');
       }
     };
@@ -181,7 +183,7 @@ export default function NotesInFolder() {
     <div>
       {/* <h2 className="text-2xl text-black dark:text-gray-100 font-semibold mb-4">Notes in Folder {folderId}</h2> */}
       <div className='flex flex-row justify-between items-center  mb-4 '>
-                    <h2 className="text-xl sm:text-2xl text-black dark:text-gray-100 font-semibold p-[0.5rem]">{folderId}</h2>
+                    <h2 className="text-xl sm:text-2xl text-black dark:text-gray-100 font-semibold p-[0.5rem]">{folderData?.name}</h2>
                      <div className="flex flex-wrap-reverse justify-items-end items-center gap-4">
                               <CustomDropdown
                                 label="Sort"
@@ -285,7 +287,7 @@ export default function NotesInFolder() {
                         onSearch={(q: string)=>setQuery(q)}
                         placeholder="Search notes..."
                         // onSelect={opt => navigate(`/folder/${opt.value}`)}
-                        onSelect={opt => console.log("clicked", opt)}
+                        onSelect={opt => navigate(`/folder/${folderId}/note/${opt.value}`)}
                       />
                       </div>
 

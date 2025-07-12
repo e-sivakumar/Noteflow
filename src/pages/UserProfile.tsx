@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { FiEdit2, FiLock, FiUser, FiMail, FiPhone, FiUserCheck } from 'react-icons/fi';
+import { FiEdit2, FiLock, FiUser, FiMail, FiPhone, FiUserCheck, FiLogOut } from 'react-icons/fi';
 import { useGetUser, useUpdateUser, useUpdatePassword } from "../hooks/useProfile";
 import Modal from '../components/Modal';
 import { useModal } from '../hooks/useModal';
 import { doPasswordsMatch, isStrongPassword } from '../utils/Validation';
 import { useToast } from '../components/ToastProvider'; 
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 // Avatar Component with first letter and animation
 const UserAvatar = ({ name, size = "w-20 h-20" }:{name: string; size?: string}) => {
@@ -32,6 +35,8 @@ export default function UserProfile() {
   const updateUser = useUpdateUser();
   const updatePassword = useUpdatePassword();
   const { addToast } = useToast();
+  const { logout } = useAuth()
+  const navigate = useNavigate();
   
   // Modals
   const { isOpen: isEditOpen, open: openEdit, close: closeEdit } = useModal();
@@ -185,12 +190,25 @@ export default function UserProfile() {
       addToast('success', 'Your profile has been updated successfully.');
       
       closeEditModal();
-    } catch (error: any) {
-      addToast(
-         'error',
-         error.response.data || 'Failed to update profile. Please try again.',);
+    } catch (error: unknown) {
+      if(axios.isAxiosError(error) && error?.response?.data?.message){
+        addToast(
+           'error',
+           error.response.data.message);
+      }
+      else{
+        addToast(
+          'error',
+          'Failed to update profile. Please try again.');
+      }
     }
   };
+
+  const onLogout = ()=>{
+    logout();
+    addToast('success', 'Logged out successfully')
+    navigate("/login");
+  }
 
   const handlePasswordSave = async () => {
     if (!validatePasswordForm()) return;
@@ -203,19 +221,23 @@ export default function UserProfile() {
       
       addToast(
          'success',
-         'Your password has been changed successfully.',
-         'Password Changed',
+         'Your password has been changed successfully.'
       );
       
       closePasswordModal();
-    } catch (error: any) {
-        console.log("ads", error)
-        console.log("sasaks", error.response)
-      addToast(
-         'error',
-         error.response.data || 'Failed to change password. Please try again.',
-         'Password Change Failed',
-      );
+    } catch (error: unknown) {
+      if(axios.isAxiosError(error) && error?.response?.data?.message){
+        addToast(
+           'error',
+           error.response.data || 'Failed to change password. Please try again.'
+        );
+      }
+      else{
+        addToast(
+           'error',
+            'Failed to change password. Please try again.'
+        );
+      }
     }
   };
 
@@ -313,14 +335,26 @@ export default function UserProfile() {
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-600">
-            <button
-              onClick={openPasswordModal}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
-            >
-              <FiLock size={18} />
-              Change Password
-            </button>
+
+          <div className='mt-8 pt-6 border-t border-gray-200 dark:border-gray-600 flex flex-col gap-10 sm:flex-row  sm:justify-between'>
+            <div className="">
+              <button
+                onClick={openPasswordModal}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+              >
+                <FiLock size={18} />
+                Change Password
+              </button>
+            </div>
+            <div className="">
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+              >
+                <FiLogOut size={18} />
+                Log out
+              </button>
+          </div>
           </div>
         </div>
 

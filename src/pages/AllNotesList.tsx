@@ -131,18 +131,6 @@ export default function AllNotesList() {
       })
       close()
     }
-    // const handlePinNote = async(id: string)=>{
-    //   await pinNote.mutateAsync({id})
-    // }
-    // const handleUnPinNote = async(id: string)=>{
-    //   await unPinNote.mutateAsync({id})
-    // }
-    // const handleArchiveNote = async(id: string)=>{
-    //   await archiveNote.mutateAsync({id})
-    // }
-    // const handleUnarchiveNote = async(id: string)=>{
-    //   await unarchiveNote.mutateAsync({id})
-    // }
 
     const handlePinNote = async (id: string) => {
       try {
@@ -205,12 +193,6 @@ export default function AllNotesList() {
                                 selected={sort}
                                 onSelect={setSort}
                               />
-                    {/* <div 
-                      className='cursor-pointer text-gray-700 dark:text-gray-200 bg-slate-300 dark:bg-gray-700 p-[0.5rem] transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg rounded-lg hover:bg-blue-500 dark:hover:bg-blue-600'
-                      onClick={()=>open()}
-                      >
-                        <FiFilePlus size={26}/>
-                    </div> */}
                     </div>
                     </div>
 
@@ -304,8 +286,7 @@ export default function AllNotesList() {
                         options={searchResults}
                         onSearch={(q: string)=>setQuery(q)}
                         placeholder="Search notes..."
-                        // onSelect={opt => navigate(`/folder/${opt.value}`)}
-                        onSelect={opt => console.log("clicked", opt)}
+                        onSelect={opt => navigate(`/folder/${opt.folderId}/note/${opt.value}`)}
                       />
                       </div>
 

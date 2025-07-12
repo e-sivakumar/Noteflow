@@ -11,6 +11,7 @@ import NotesInFolder from '../pages/NotesInFolder';
 import FolderList from '../pages/FolderList';
 import NoteViewPage from '../pages/NoteViewPage';
 import UserProfile from '../pages/UserProfile';
+import NotFoundPage from '../pages/NotFoundPage';
 
 const ProtectedRoute = () => {
   const { isAuthenticated } = useAuth();
@@ -45,7 +46,7 @@ export default function AppRoutes() {
       
       <Route path='/profile' element={<UserProfile/>} />
 
-      <Route path="*" element={<div>404 Not Found</div>} />
+      <Route path="*" element={<NotFoundPage/>} />
     </Routes>
     </BrowserRouter>
   );
